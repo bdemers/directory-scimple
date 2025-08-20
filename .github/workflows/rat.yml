@@ -33,3 +33,9 @@ jobs:
       java-version: 17
       java-distribution: 'zulu'
     secrets: inherit
+
+  actions-timeline:
+    needs: [rat]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: Kesin11/actions-timeline@v2.2.4
