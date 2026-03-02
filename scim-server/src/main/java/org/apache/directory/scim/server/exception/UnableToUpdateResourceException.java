@@ -19,11 +19,15 @@
 
 package org.apache.directory.scim.server.exception;
 
+import java.io.Serial;
+
+
 import jakarta.ws.rs.core.Response.Status;
 import org.apache.directory.scim.spec.exception.ResourceException;
 
 public class UnableToUpdateResourceException extends ResourceException {
 
+  @Serial
   private static final long serialVersionUID = -3872700870424005641L;
 
   public UnableToUpdateResourceException(Status status, String message) {

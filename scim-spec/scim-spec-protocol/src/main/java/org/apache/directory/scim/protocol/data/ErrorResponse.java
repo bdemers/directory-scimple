@@ -19,6 +19,9 @@
 
 package org.apache.directory.scim.protocol.data;
 
+import java.io.Serial;
+
+
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -34,6 +37,7 @@ import org.apache.directory.scim.spec.resources.BaseResource;
 @XmlAccessorType(XmlAccessType.NONE)
 public class ErrorResponse extends BaseResource<ErrorResponse> {
 
+  @Serial
   private static final long serialVersionUID = 9045421198080348116L;
 
   public static final String SCHEMA_URI = "urn:ietf:params:scim:api:messages:2.0:Error";
