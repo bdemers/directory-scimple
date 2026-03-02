@@ -19,12 +19,16 @@
 
 package org.apache.directory.scim.protocol.exception;
 
+import java.io.Serial;
+
+
 import jakarta.ws.rs.core.Response.Status;
 
 import org.apache.directory.scim.protocol.data.ErrorResponse;
 
 public class ScimException extends Exception {
 
+  @Serial
   private static final long serialVersionUID = 3643485564325176463L;
   private final ErrorResponse error;
   private final Status status;

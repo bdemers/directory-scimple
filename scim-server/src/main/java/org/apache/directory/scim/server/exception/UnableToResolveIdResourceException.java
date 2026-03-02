@@ -20,11 +20,15 @@
 package org.apache.directory.scim.server.exception;
 
 
+import java.io.Serial;
+
+
 import jakarta.ws.rs.core.Response.Status;
 import org.apache.directory.scim.spec.exception.ResourceException;
 
 public class UnableToResolveIdResourceException extends ResourceException {
 
+  @Serial
   private static final long serialVersionUID = -7401709416973728017L;
 
   public UnableToResolveIdResourceException(Status status, String message) {

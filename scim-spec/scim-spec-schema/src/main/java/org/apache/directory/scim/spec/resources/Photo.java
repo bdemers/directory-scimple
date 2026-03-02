@@ -19,6 +19,7 @@
 
 package org.apache.directory.scim.spec.resources;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -35,7 +36,8 @@ import org.apache.directory.scim.spec.annotation.ScimAttribute;
 @XmlType
 @XmlAccessorType(XmlAccessType.NONE)
 public class Photo implements Serializable, TypedAttribute {
-  
+
+  @Serial
   private static final long serialVersionUID = 8821620834716156789L;
  
   @XmlElement
