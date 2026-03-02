@@ -48,82 +48,28 @@ package org.apache.directory.scim.core.repository;
  * @see <a href="https://datatracker.ietf.org/doc/html/rfc7232#section-2.3">Conditional Requests - RFC 7232</a>
  * @see <a href="https://datatracker.ietf.org/doc/html/rfc7644#section-3.14">SCIM Protocol -  RFC 7644</a>
  */
-public class ETag {
-  private String value;
-  private boolean weak;
-  
-  /**
-   * Public ETag constructor
-   * 
-   * @param value The ETag value
-   * @param weak Weakness indicator
-   */
-  public ETag( String value, boolean weak ) {
-    this.value = value;
-    this.weak = weak;
-  }
+public record ETag(String value, boolean weak) {
 
   /**
    * @return the value
+   * @deprecated Use {@link #value()} instead.
    */
+  @Deprecated(forRemoval = true)
   public String getValue() {
     return value;
   }
 
-
   /**
    * @return the weak
+   * @deprecated Use {@link #weak()} instead.
    */
+  @Deprecated(forRemoval = true)
   public boolean isWeak() {
     return weak;
   }
-  
-  
-  /**
-   * Gets the hashcode of this object.
-   *
-   * @see java.lang.Object#hashCode()
-   * @return The instance hash code
-   */
-  @Override
-  public int hashCode() {
-    int h = 37;
-    
-    h = h * 17 + ( value != null ? value.hashCode() : 0 );
-    h = h * 17 + ( weak ? 1 : 0 );
-    
-    return h;
-  }
-  
-  
-  /**
-   * @see Object#equals(Object)
-   */
-  @Override
-  public boolean equals( Object obj ) {
-    if ( this == obj ) {
-      return true;
-    }
 
-    if ( !( obj instanceof ETag ) ) {
-      return false;
-    }
-    
-    ETag that = (ETag)obj;
-    
-    if ( value == null ) {
-      return weak = that.weak && that.value == null;
-    } else {
-      return weak == that.weak && value.equals( that.value );
-    }
-  }
-
-  
-  /**
-   * @see Object#toString()
-   */
   @Override
   public String toString() {
-      return (weak ? "W/": "") + value;
+    return (weak ? "W/" : "") + value;
   }
 }

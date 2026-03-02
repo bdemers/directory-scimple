@@ -154,17 +154,15 @@ public class BulkResourceImpl implements BulkResource {
       // bad/missing input for method
       if (method != null && !(operationRequest.getResponse() instanceof ErrorResponse)) {
         switch (method) {
-        case POST:
-        case PUT: {
+        case POST, PUT -> {
           if (operationRequest.getData() == null) {
             errorOccurred = true;
 
             createAndSetErrorResponse(operationRequest, Status.BAD_REQUEST, "data not provided");
           }
         }
-          break;
 
-        case DELETE: {
+        case DELETE -> {
           String path = operationRequest.getPath();
 
           if (path == null) {
@@ -187,18 +185,15 @@ public class BulkResourceImpl implements BulkResource {
             }
           }
         }
-          break;
 
-        case PATCH: {
+        case PATCH -> {
           errorOccurred = true;
 
           createAndSetErrorResponse(operationRequest, Status.NOT_IMPLEMENTED, "Method not implemented: PATCH");
         }
-          break;
 
-        default: {
+        default -> {
         }
-          break;
         }
       } else if (method == null) {
         errorOccurred = true;
@@ -277,12 +272,12 @@ public class BulkResourceImpl implements BulkResource {
     }
     // Resolve unresolved bulkIds
     for (IWishJavaHadTuples iwjht : allUnresolveds) {
-      BulkOperation bulkOperationResult = iwjht.bulkOperationResult;
-      String bulkIdKey = iwjht.bulkIdKey;
+      BulkOperation bulkOperationResult = iwjht.bulkOperationResult();
+      String bulkIdKey = iwjht.bulkIdKey();
       ScimResource scimResource = bulkOperationResult.getData();
 
       try {
-        for (UnresolvedTopLevel unresolved : iwjht.unresolveds) {
+        for (UnresolvedTopLevel unresolved : iwjht.unresolveds()) {
           log.debug("Final resolution pass for {}", unresolved);
           unresolved.resolve(scimResource, bulkIdKeyToOperationResult);
         }
@@ -411,7 +406,7 @@ public class BulkResourceImpl implements BulkResource {
     Repository<ScimResource> repository = repositoryRegistry.getRepository(scimResourceClass);
 
     switch (bulkOperationMethod) {
-    case POST: {
+    case POST -> {
       log.debug("POST: {}", scimResource);
 
       this.resolveTopLevel(unresolveds, operationResult, bulkIdKeyToOperationResult);
@@ -439,9 +434,8 @@ public class BulkResourceImpl implements BulkResource {
       operationResult.setPath(null);
       operationResult.setStatus(StatusWrapper.wrap(Status.CREATED));
     }
-      break;
 
-    case DELETE: {
+    case DELETE -> {
       log.debug("DELETE: {}", operationResult.getPath());
 
       String scimResourceId = operationResult.getPath()
@@ -452,9 +446,8 @@ public class BulkResourceImpl implements BulkResource {
       repository.delete(scimResourceId);
       operationResult.setStatus(StatusWrapper.wrap(Status.NO_CONTENT));
     }
-      break;
 
-    case PUT: {
+    case PUT -> {
       log.debug("PUT: {}", scimResource);
 
       this.resolveTopLevel(unresolveds, operationResult, bulkIdKeyToOperationResult);
@@ -470,16 +463,14 @@ public class BulkResourceImpl implements BulkResource {
         operationResult.setStatus(StatusWrapper.wrap(Status.NOT_FOUND));
       }
     }
-      break;
 
-    default: {
+    default -> {
       BulkOperation.Method method = operationResult.getMethod();
       String detail = "Method not allowed: " + method;
 
       log.error("Received unallowed method: {}", method);
       createAndSetErrorResponse(operationResult, Status.METHOD_NOT_ALLOWED, detail);
     }
-      break;
     }
   }
 
@@ -494,16 +485,7 @@ public class BulkResourceImpl implements BulkResource {
     operationResult.setPath(null);
   }
 
-  private static class IWishJavaHadTuples {
-    public final String bulkIdKey;
-    public final List<UnresolvedTopLevel> unresolveds;
-    public final BulkOperation bulkOperationResult;
-
-    public IWishJavaHadTuples(String bulkIdKey, List<UnresolvedTopLevel> unresolveds, BulkOperation bulkOperationResult) {
-      this.bulkIdKey = bulkIdKey;
-      this.unresolveds = unresolveds;
-      this.bulkOperationResult = bulkOperationResult;
-    }
+  private record IWishJavaHadTuples(String bulkIdKey, List<UnresolvedTopLevel> unresolveds, BulkOperation bulkOperationResult) {
   }
 
   private static class UnresolvableOperationException extends Exception {
@@ -514,32 +496,23 @@ public class BulkResourceImpl implements BulkResource {
     }
   }
 
-  private static class UnresolvedComplex {
-    private final Object object;
-    private final Schema.AttributeAccessor accessor;
-    private final String bulkIdKey;
-
-    public UnresolvedComplex(Object object, Schema.AttributeAccessor accessor, String bulkIdKey) {
-      this.object = object;
-      this.accessor = accessor;
-      this.bulkIdKey = bulkIdKey;
-    }
+  private record UnresolvedComplex(Object object, Schema.AttributeAccessor accessor, String bulkIdKey) {
 
     public void resolve(Map<String, BulkOperation> bulkIdKeyToOperationResult) throws UnresolvableOperationException {
-      BulkOperation resolvedOperation = bulkIdKeyToOperationResult.get(this.bulkIdKey);
+      BulkOperation resolvedOperation = bulkIdKeyToOperationResult.get(bulkIdKey);
       BaseResource response = resolvedOperation.getResponse();
       ScimResource resolvedResource = resolvedOperation.getData();
 
       if ((response == null || !(response instanceof ErrorResponse)) && resolvedResource != null) {
         String resolvedId = resolvedResource.getId();
-        this.accessor.set(this.object, resolvedId);
+        accessor.set(object, resolvedId);
       } else {
-        throw new UnresolvableOperationException(String.format(BULK_ID_REFERS_TO_FAILED_RESOURCE, this.bulkIdKey));
+        throw new UnresolvableOperationException(String.format(BULK_ID_REFERS_TO_FAILED_RESOURCE, bulkIdKey));
       }
     }
   }
 
-  private static abstract class UnresolvedTopLevel {
+  private static sealed abstract class UnresolvedTopLevel permits UnresolvedTopLevelBulkId, UnresolvedTopLevelComplex {
     protected final Schema.AttributeAccessor accessor;
 
     public UnresolvedTopLevel(Schema.AttributeAccessor accessor) {
@@ -549,7 +522,7 @@ public class BulkResourceImpl implements BulkResource {
     public abstract void resolve(ScimResource scimResource, Map<String, BulkOperation> bulkIdKeyToOperationResult) throws UnresolvableOperationException;
   }
 
-  private static class UnresolvedTopLevelBulkId extends UnresolvedTopLevel {
+  private static final class UnresolvedTopLevelBulkId extends UnresolvedTopLevel {
     private final String unresolvedBulkIdKey;
 
     public UnresolvedTopLevelBulkId(Schema.AttributeAccessor accessor, String bulkIdKey) {
@@ -573,7 +546,7 @@ public class BulkResourceImpl implements BulkResource {
     }
   }
 
-  private static class UnresolvedTopLevelComplex extends UnresolvedTopLevel {
+  private static final class UnresolvedTopLevelComplex extends UnresolvedTopLevel {
     public final Object complex;
     public final List<UnresolvedComplex> unresolveds;
 

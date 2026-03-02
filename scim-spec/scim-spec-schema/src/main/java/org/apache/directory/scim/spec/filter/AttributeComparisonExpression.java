@@ -88,14 +88,14 @@ public final class AttributeComparisonExpression implements FilterExpression, Va
 
     if (this.compareValue == null) {
       compareValueString = "null";
-    } else if (this.compareValue instanceof String) {
-      compareValueString = QUOTE + this.compareValue + QUOTE;
-    } else if (this.compareValue instanceof Date) {
-      compareValueString = QUOTE + toDateTimeString((Date) this.compareValue) + QUOTE;
-    } else if (this.compareValue instanceof LocalDate) {
-      compareValueString = QUOTE + toDateString((LocalDate) this.compareValue) + QUOTE;
-    } else if (this.compareValue instanceof LocalDateTime) {
-      compareValueString = QUOTE + toDateTimeString((LocalDateTime) this.compareValue) + QUOTE;
+    } else if (this.compareValue instanceof String s) {
+      compareValueString = QUOTE + s + QUOTE;
+    } else if (this.compareValue instanceof Date d) {
+      compareValueString = QUOTE + toDateTimeString(d) + QUOTE;
+    } else if (this.compareValue instanceof LocalDate ld) {
+      compareValueString = QUOTE + toDateString(ld) + QUOTE;
+    } else if (this.compareValue instanceof LocalDateTime ldt) {
+      compareValueString = QUOTE + toDateTimeString(ldt) + QUOTE;
     } else {
       compareValueString = this.compareValue.toString();
     }
@@ -116,8 +116,7 @@ public final class AttributeComparisonExpression implements FilterExpression, Va
 
   public boolean equals(final Object o) {
     if (o == this) return true;
-    if (!(o instanceof AttributeComparisonExpression)) return false;
-    final AttributeComparisonExpression other = (AttributeComparisonExpression) o;
+    if (!(o instanceof AttributeComparisonExpression other)) return false;
     final Object this$attributePath = this.getAttributePath();
     final Object other$attributePath = other.getAttributePath();
     if (this$attributePath == null ? other$attributePath != null : !this$attributePath.equals(other$attributePath))

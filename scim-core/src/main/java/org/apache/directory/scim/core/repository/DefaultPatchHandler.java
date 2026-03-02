@@ -51,7 +51,6 @@ import org.apache.directory.scim.spec.schema.Schema.Attribute.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static java.util.stream.Collectors.toList;
 
 /**
  * The default implementation of a PatchHandler that applies PatchOperations by walking a map equivalent
@@ -103,10 +102,11 @@ public class DefaultPatchHandler implements PatchHandler {
     Map<String, Object> sourceAsMap = objectAsMap(original);
     for (PatchOperation patchOperation : patchOperations) {
       if (patchOperation.getPath() == null) {
-        if (!(patchOperation.getValue() instanceof Map)) {
+        if (!(patchOperation.getValue() instanceof Map<?, ?> map)) {
           throw new UnsupportedFilterException("Cannot apply patch. value is required");
         }
-        Map<String, Object> properties = (Map<String, Object>) patchOperation.getValue();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> properties = (Map<String, Object>) map;
 
         for (Map.Entry<String, Object> entry : properties.entrySet()) {
           // convert SCIM patch to RFC-6902 patch
@@ -278,8 +278,8 @@ public class DefaultPatchHandler implements PatchHandler {
         items = new ArrayList<>();
       }
 
-      if (value instanceof Collection) {
-        items.addAll((Collection<Object>) value);
+      if (value instanceof Collection<?> collection) {
+        items.addAll(collection);
       } else {
         items.add(value);
       }
@@ -314,10 +314,9 @@ public class DefaultPatchHandler implements PatchHandler {
       // values for example in the expression `emails[type eq "work"].value` with a patch value of `foo@example.com`
       // the map will contain `type: "work", value: "foo@example.com"`
       if (!matchFound) {
-        if (!(valuePathExpression.getAttributeExpression() instanceof AttributeComparisonExpression)) {
+        if (!(valuePathExpression.getAttributeExpression() instanceof AttributeComparisonExpression comparisonExpression)) {
           throw new UnsupportedFilterException("Attribute cannot be added, only comparison expressions are supported when the existing item does not exist.");
         }
-        AttributeComparisonExpression comparisonExpression = (AttributeComparisonExpression) valuePathExpression.getAttributeExpression();
         checkPrimary(subAttributeName, items, value);
 
         // Add a new mutable map
@@ -370,7 +369,7 @@ public class DefaultPatchHandler implements PatchHandler {
       Collection<Map<String, Object>> items = (Collection<Map<String, Object>>) sourceAsMap.get(attributeName);
       Predicate<Object> pred = FilterExpressions.inMemoryMap(valuePathExpression.getAttributeExpression(), schema);
 
-      Collection<Object> updatedCollection = items.stream()
+      List<Map<String, Object>> updatedCollection = items.stream()
         .map(item -> {
           // find items that need to be updated
           if (pred.test(item)) {
@@ -385,7 +384,7 @@ public class DefaultPatchHandler implements PatchHandler {
             }
           }
           return item;
-        }).collect(toList());
+        }).toList();
       sourceAsMap.put(attribute.getName(), updatedCollection);
     }
   }
@@ -485,21 +484,21 @@ public class DefaultPatchHandler implements PatchHandler {
     private static List<String> azureQuirkValuesToRemove(Collection<?> listOfMaps, Attribute attribute) {
       return listOfMaps.stream()
         .map(item -> {
-          if (!(item instanceof Map)) {
+          if (!(item instanceof Map<?, ?> map)) {
             throw new IllegalArgumentException("Azure Remove Patch request quirk detected, but 'value' is not a list of maps");
           }
-          return (Map<?,?>) item;
+          return map;
         })
         .map(item -> {
           Attribute valueAttribute = attribute.getAttribute(VALUE_ATTRIBUTE_NAME);
           Object itemValue = item.get(valueAttribute.getName());
-          if (!(itemValue instanceof String)) {
+          if (!(itemValue instanceof String s)) {
             throw new IllegalArgumentException("Azure Remove Patch request quirk detected, but item 'value' is not a string");
           }
 
-          return (String) itemValue;
+          return s;
         })
-        .collect(toList());
+        .toList();
     }
   }
 }
