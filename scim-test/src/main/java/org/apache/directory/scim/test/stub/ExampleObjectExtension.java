@@ -153,8 +153,7 @@ public class ExampleObjectExtension implements ScimExtension {
 
   public boolean equals(final Object o) {
     if (o == this) return true;
-    if (!(o instanceof ExampleObjectExtension)) return false;
-    final ExampleObjectExtension other = (ExampleObjectExtension) o;
+    if (!(o instanceof ExampleObjectExtension other)) return false;
     if (!other.canEqual((Object) this)) return false;
     final Object this$valueAlways = this.getValueAlways();
     final Object other$valueAlways = other.getValueAlways();
@@ -254,8 +253,7 @@ public class ExampleObjectExtension implements ScimExtension {
 
     public boolean equals(final Object o) {
       if (o == this) return true;
-      if (!(o instanceof ComplexObject)) return false;
-      final ComplexObject other = (ComplexObject) o;
+      if (!(o instanceof ComplexObject other)) return false;
       if (!other.canEqual((Object) this)) return false;
       final Object this$value = this.getValue();
       final Object other$value = other.getValue();
